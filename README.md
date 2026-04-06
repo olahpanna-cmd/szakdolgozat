@@ -8,7 +8,7 @@ Az elemzés logikai sorrendben az alábbi fájlokra van bontva:
 * `00_adatbazisok_egyesitese.R`: Különböző forrásból származó (témakódolt és pártkódolt) nyers parlamenti korpuszok összekapcsolása URL fragmentumok alapján.
 * `01_adattisztitas.R`: A nyers korpusz szűrése, független és nemzetiségi képviselők, valamint technikai napirendi pontok eltávolítása.
 * `02_deskriptiv_stat.R`: Alapvető leíró statisztikák (felszólalások száma pártok és ciklusok szerint).
-* `03_szovegelemzes_es_cossu.R`: EU populista diskurzus azonosítása és a kontextus elemzés (COSSU hálózatok +/- 2 szavas ablakkal).
+* `03_szovegelemzes_es_cossu.R`: EU populista diskurzus azonosítása és a kontextus elemzés (EU említése +/- 2 szavas ablakkal).
 * `04_eu_kritikus_diskurzus_es_temak.R`: Negatív kontextusú EU-s beszédek szűrése és vizsgálata a különböző szakpolitikai témákban (topics).
 * `05_fidesz_diskurzus.R`: A Fidesz-specifikus populista kifejezések intenzitásának elemzése a korpuszon belül.
 * `06_temak_es_migracio.R`: A diskurzus alakulása a különböző témákban, különös tekintettel a migrációs vitákra (2010 utáni ciklusok).
