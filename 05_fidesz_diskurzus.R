@@ -1,29 +1,16 @@
-# ==============================================================================
-# FIDESZ-SPECIFIKUS SZÓTÁR ÉS TARTALOMELEMZÉS
-# ==============================================================================
-
-# --- Könyvtárak betöltése ---
 library(tidyverse)
 library(scales)
 
-# --- Tisztított adatok beolvasása ---
 df <- readRDS("data/vegleges.rds")
 
-
-# ==============================================================================
-# 1. SZÓTÁRAK ÉS ADATELŐKÉSZÍTÉS (EGYSZERI, GYORSÍTOTT SZÁMOLÁS)
-# ==============================================================================
-
-# --- A Fidesz szótár beállítása ---
 szent_formak <- "\\b(szent|szentek|szentet|szentnek|szentté|szentül|szenthez|szentből|szentben|szenteknek|szenteket)\\b"
 tovabbi_fidesz_szavak <- c("kedvesebb", "úriember", "húsz", "elmúlt", 
                            "csendőrség", "vasárnap", "idegenforgalom", 
                            "jövőbeli", "megtámadták")
 
-# Itt hozzuk létre a fideszszolista objektumot
+
 fideszszolista <- paste(c(szent_formak, tovabbi_fidesz_szavak), collapse = "|")
 
-# --- Téma címkék betöltése ---
 topic_labels <- c(
   "1" = "Makrogazdaság", "2" = "Polgári jogok", "3" = "Egészségügy",
   "4" = "Mezőgazdaság", "5" = "Munkaügy", "6" = "Oktatás",
@@ -34,26 +21,13 @@ topic_labels <- c(
   "20" = "Kormányzati működés", "21" = "Közterületek", "23" = "Kultúra"
 )
 
-# --- Alapmutatók kiszámítása a TELJES adatbázisra ---
 df <- df %>%
   mutate(
-    # Szószám kiszámítása minden beszédre
     word_count = str_count(speech_text, "\\S+"),
-    
-    # Fidesz kifejezések számolása (kisbetűsítve) a fideszszolista alapján
     fidesz_db = str_count(str_to_lower(speech_text), fideszszolista),
-    
-    # Flag: van-e benne egyáltalán?
     fidesz_flag = fidesz_db > 0,
-    
-    # Témák nevesítése (ha van major_topic oszlop)
     topic_name = if("major_topic" %in% names(.)) topic_labels[as.character(major_topic)] else NA
   )
-
-
-# ==============================================================================
-# 2. KERESZT-PÁRT STATISZTIKÁK (MINDEN PÁRT)
-# ==============================================================================
 
 print("--- FIDESZ CSOMAG TELJES STATISZTIKA PÁRTONKÉNT (Összes év) ---")
 party_total_stat <- df %>%
@@ -78,11 +52,6 @@ party_freq_cycle <- df %>%
   mutate(freq_per_1k = round((talalatok / osszes_szo) * 1000, 2)) %>%
   arrange(electoral_cycle, desc(freq_per_1k)) 
 print(party_freq_cycle)
-
-
-# ==============================================================================
-# 3. FIDESZ-SPECIFIKUS STATISZTIKÁK (CSAK FIDESZ)
-# ==============================================================================
 
 df_fidesz <- df %>% filter(party == "Fidesz")
 
@@ -109,11 +78,6 @@ fidesz_cycle_stat <- df_fidesz %>%
   )
 print(fidesz_cycle_stat)
 
-
-# ==============================================================================
-# 4. TÉMA-SPECIFIKUS STATISZTIKÁK (FIDESZ BESZÉDEK)
-# ==============================================================================
-
 print("--- FIDESZ-CSOMAG STATISZTIKÁK TÉMÁNKÉNT ---")
 fidesz_topic_stats <- df_fidesz %>%
   filter(!is.na(topic_name)) %>%
@@ -128,11 +92,6 @@ fidesz_topic_stats <- df_fidesz %>%
   ) %>%
   arrange(desc(intenzitas_1000))
 print(fidesz_topic_stats)
-
-
-# ==============================================================================
-# 5. MIGRÁCIÓS FÓKUSZ (FIDESZ, 2010 UTÁN)
-# ==============================================================================
 
 df_fidesz_migracio <- df_fidesz %>%
   filter(topic_name == "Migráció", electoral_cycle > 2010)
