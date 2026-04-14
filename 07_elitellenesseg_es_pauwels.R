@@ -1,30 +1,17 @@
-# ==============================================================================
-# ELITELLENESSÉG ÉS PAUWELS-FÉLE POPULIZMUS ELEMZÉSE
-# ==============================================================================
-
-# --- Könyvtárak betöltése ---
 library(tidyverse)
 library(scales)
 
-# --- Tisztított adatok beolvasása ---
 df <- readRDS("data/vegleges.rds")
 
-
-# ==============================================================================
-# 1. SZÓTÁRAK ÉS ADATELŐKÉSZÍTÉS (KÖZÖS SZÁMOLÁS)
-# ==============================================================================
-
-# --- Közös kifejezések (mindkét szótár használja) ---
 elit_formak <- "\\b(elit)"
 csal_formak <- "\\b(csalás|csalnak|csaló|csal|csalással|csalást|csalni|csalók|csaltak|csalásra|csalási|csalt|csalókat)\\b"
 
-# --- 1. Elitellenes szótár felépítése ---
 elit_tovabbi_szavak <- c("konszenzus", "demokráciaellenes", "korrupt", "propaganda", 
                          "elárul", "szégyen", "botrány", "igazság", "hazug", 
                          "népszavazás", "tisztességtelen", "megtéveszt", "becsap", "politikus")
 elitellenesszolista <- paste(c(elit_formak, csal_formak, elit_tovabbi_szavak), collapse = "|")
 
-# --- 2. Pauwels szótár felépítése ---
+
 nep_formak <- "\\b(nép|népnek|népet|népe|népét|néppel|népünk|néptől|néphez|népben|népünket|népért|népről|népünknek|népem|népemet)\\b"
 osztaly_formak <- "\\b(osztály|osztályok|osztályban|osztályt|osztályba)\\b"
 kaszt_formak <- "\\b(kaszt)"
@@ -36,7 +23,6 @@ pauwels_tovabbi_szavak <- c("elárul", "abszurd", "arrogáns", "pártokrácia", 
                             "szégyentelen", "szégyen", "beismer", "hagyomány")
 pauwelsszolista <- paste(c(nep_formak, csal_formak, osztaly_formak, elit_formak, kaszt_formak, iger_formak, pauwels_tovabbi_szavak), collapse = "|")
 
-# --- Témák címkézése ---
 topic_labels <- c(
   "1" = "Makrogazdaság", "2" = "Polgári jogok", "3" = "Egészségügy",
   "4" = "Mezőgazdaság", "5" = "Munkaügy", "6" = "Oktatás",
@@ -60,11 +46,6 @@ df <- df %>%
     pauwels_db = str_count(str_to_lower(speech_text), pauwelsszolista),
     pauwels_flag = pauwels_db > 0
   )
-
-
-# ==============================================================================
-# 2. ELITELLENESSÉG ELEMZÉSE (Alap és Intenzitás)
-# ==============================================================================
 
 print("========== ELITELLENESSÉG EREDMÉNYEK ==========")
 
@@ -109,11 +90,6 @@ print(df %>%
           intenzitas_1000 = round((sum(elit_db, na.rm = TRUE) / sum(word_count, na.rm = TRUE)) * 1000, 2)
         ) %>% arrange(desc(intenzitas_1000))
 )
-
-
-# ==============================================================================
-# 3. PAUWELS POPULIZMUS ELEMZÉSE (Alap és Intenzitás)
-# ==============================================================================
 
 print("========== PAUWELS-FÉLE POPULIZMUS EREDMÉNYEK ==========")
 
