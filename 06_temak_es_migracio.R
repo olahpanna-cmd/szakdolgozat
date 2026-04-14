@@ -1,20 +1,9 @@
-# ==============================================================================
-# TÉMASPECIFIKUS ÉS MIGRÁCIÓS DISKURZUSELEMZÉS (2010 UTÁN)
-# ==============================================================================
-
-# --- Könyvtárak betöltése ---
 library(tidyverse)
 library(scales)
 
-# --- Tisztított adatok beolvasása ---
 df <- readRDS("data/vegleges.rds")
 
 
-# ==============================================================================
-# 1. SZÓLISTÁK ÉS ALAP TÁBLÁK ELŐKÉSZÍTÉSE
-# ==============================================================================
-
-# --- Szólisták
 eurpaiuniszolista <- paste(c("keresztény Európa", "EU- alapok", "európai alapok", "európai székhelyű", 
                              "közép- európai", "millió euró", "közép európaiak", "európai közlekedés", 
                              "európai országok", "uniós jogszabályok"), collapse = "|")
@@ -28,7 +17,6 @@ fideszszolista <- paste(fidesz_szavak, collapse = "|")
 
 eu_pattern <- "\\b(eu|európai unió|európai|európa|unió|uniós)\\b"
 
-# --- Témák címkézése és szószám kiszámítása ---
 topic_labels <- c(
   "1" = "Makrogazdaság", "2" = "Polgári jogok", "3" = "Egészségügy",
   "4" = "Mezőgazdaság", "5" = "Munkaügy", "6" = "Oktatás",
@@ -39,7 +27,7 @@ topic_labels <- c(
   "20" = "Kormányzati működés", "21" = "Közterületek", "23" = "Kultúra"
 )
 
-# Végleges, témákkal és szószámmal ellátott alapkorpusz
+
 df_topics <- df %>%
   filter(major_topic != 9999) %>%
   mutate(
@@ -48,12 +36,6 @@ df_topics <- df %>%
   ) %>%
   filter(!is.na(topic_name))
 
-
-# ==============================================================================
-# 2. EU NEGATÍV DISKURZUS AZ ÖSSZES TÉMÁBAN
-# ==============================================================================
-
-# Csak az EU-s kontextusú beszédekre szűrünk
 df_eu_topics <- df_topics %>%
   mutate(eu_basic_flag = str_detect(speech_text, regex(eu_pattern, ignore_case = TRUE))) %>%
   filter(eu_basic_flag == TRUE) %>%
@@ -75,7 +57,7 @@ eupozitiv_stats <- df_eu_topics %>%
   ) %>% arrange(desc(jelenlet_szazalek))
 print(eupozitiv_stats)
 
-print("--- EU NEGATÍV STATISZTIKÁK TÉMÁNKÉNT (Bázis: EU-s beszédek) ---")
+print("--- EU NEGATÍV STATISZTIKÁK TÉMÁNKÉNT (EU-s beszédek) ---")
 eunegativ_stats <- df_eu_topics %>%
   group_by(topic_name) %>%
   summarise(
@@ -87,10 +69,6 @@ eunegativ_stats <- df_eu_topics %>%
 print(eunegativ_stats)
 
 
-# ==============================================================================
-# 3. MIGRÁCIÓS FÓKUSZ (2010 UTÁNI CIKLUSOK)
-# ==============================================================================
-
 df_migration_2010 <- df_topics %>%
   filter(
     topic_name == "Migráció",
@@ -99,7 +77,6 @@ df_migration_2010 <- df_topics %>%
     !electoral_cycle %in% c("1998-2002", "2002-2006", "2006-2010")
   )
 
-# --- A) Sima EU (Populista) megközelítés a migrációban ---
 df_mig_populista <- df_migration_2010 %>%
   mutate(
     eu_count = str_count(str_to_lower(speech_text), eurpaiuniszolista),
@@ -124,7 +101,6 @@ print(df_mig_populista %>%
           intenzitas_1000 = round((sum(eu_count, na.rm=TRUE) / sum(word_count, na.rm=TRUE)) * 1000, 2)
         ))
 
-# --- B) EU NEGATÍV megközelítés a migrációban (EU kontextus szűréssel) ---
 df_mig_eunegativ <- df_migration_2010 %>%
   mutate(eu_basic_flag = str_detect(speech_text, regex(eu_pattern, ignore_case = TRUE))) %>%
   filter(eu_basic_flag == TRUE) %>%
@@ -133,7 +109,7 @@ df_mig_eunegativ <- df_migration_2010 %>%
     has_eunegativ = eunegativ_count > 0
   )
 
-print("--- EU NEGATÍV A MIGRÁCIÓBAN PÁRTONKÉNT (2010 után, EU bázison) ---")
+print("--- EU NEGATÍV A MIGRÁCIÓBAN PÁRTONKÉNT (2010 után, EU) ---")
 print(df_mig_eunegativ %>%
         group_by(party) %>%
         summarise(
@@ -143,7 +119,6 @@ print(df_mig_eunegativ %>%
         ) %>% arrange(desc(jelenlet_szazalek)))
 
 
-# --- C) Fidesz-csomag a migrációban (Csak Fidesz) ---
 df_mig_fidesz <- df_migration_2010 %>%
   filter(party == "Fidesz") %>%
   mutate(
