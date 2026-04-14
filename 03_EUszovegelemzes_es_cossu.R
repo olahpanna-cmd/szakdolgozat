@@ -1,36 +1,23 @@
-# ==============================================================================
-# EU DISKURZUS ÉS KONTEXTUS
-# ==============================================================================
-
-# --- Könyvtárak betöltése ---
 library(tidyverse)
 library(tidytext)
 library(stringr)
 library(stopwords)
 
-# --- Tisztított adatok beolvasása ---
 df <- readRDS("data/vegleges.rds")
 
-
-# ==============================================================================
-# 1. RÉSZ: EU POPULISTA DISKURZUS (LEÍRÓ ELEMZÉS)
-# ==============================================================================
-
-# --- Szócsomagok definiálása ---
 eurpaiuniszolista <- c(
   "keresztény Európa", "EU- alapok", "európai alapok", "európai székhelyű", 
   "közép- európai", "millió euró", "közép európaiak", "európai közlekedés", 
   "európai országok", "uniós jogszabályok"
 )
 
-# --- EU-ra utaló kifejezések keresése ---
+
 df <- df %>%
   mutate(
     eu_flag = str_detect(str_to_lower(speech_text), 
                          str_to_lower(paste(eurpaiuniszolista, collapse = "|")))
   )
 
-# --- Eredmények összesítése ---
 print("--- Összesített EU diskurzus ---")
 eu_summary <- df %>%
   summarise(
@@ -64,12 +51,6 @@ eu_cycle <- df %>%
   mutate(eu_szazalek = round(eu_arany * 100, 2))
 print(eu_cycle)
 
-
-# ==============================================================================
-# 2. RÉSZ: KONTEXTUÁLIS ELEMZÉS (COSSU MÓDSZER)
-# ==============================================================================
-
-# --- Stopszavak és Tokenizálás ---
 stop_hu <- c(stopwords("hu"), "is", "ha")
 
 tokens <- df %>%
@@ -80,7 +61,6 @@ tokens <- df %>%
   mutate(pos = row_number()) %>%
   ungroup()
 
-# --- EU horgonyszavak keresése és klaszterezése ---
 eu_anchors <- c("eu", "unió")
 eu_pattern <- paste0("\\b(", paste(eu_anchors, collapse = "|"), ")")
 
@@ -104,7 +84,6 @@ hit_clusters <- hits %>%
     .groups = "drop"
   )
 
-# --- +/- 2 szavas kontextus ablakok kinyerése ---
 windows <- hit_clusters %>%
   inner_join(tokens, by = c("doc_id", "party", "electoral_cycle"), relationship = "many-to-many") %>%
   filter(
@@ -123,7 +102,6 @@ windows_text <- windows %>%
   ) %>%
   distinct(doc_id, hit_id, .keep_all = TRUE)
 
-# --- Célpontok (populista és nem populista) keresése a kontextusban ---
 cossu_targets <- c("keresztény", "alapok", "székhelyű", "közép", "millió", "közlekedés", "országok", "jogszabályok")
 cossu_pattern <- paste(cossu_targets, collapse = "|")
 
@@ -150,7 +128,6 @@ rates <- windows_text %>%
 print("--- COSSU Eredmények táblázata ---")
 print(rates)
 
-# --- Összesített eredmények pártonként ---
 summary_stats <- rates %>%
   filter(party %in% c("Fidesz", "MSZP")) %>%
   group_by(party) %>%
@@ -163,7 +140,6 @@ summary_stats <- rates %>%
 print("--- Összesített COSSU statisztika (Fidesz & MSZP) ---")
 print(summary_stats)
 
-# --- Leggyakoribb kontextus-szavak (Top 20) ---
 top_words <- windows %>%
   filter(!str_detect(word_ctx, eu_pattern)) %>% 
   count(party, word_ctx, sort = TRUE)
